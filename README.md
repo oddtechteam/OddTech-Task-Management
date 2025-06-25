@@ -1,42 +1,17 @@
-# 🧠 Face Recognition Task Management System
+# Task Management System
 
-A full-stack web application that combines **React.js**, **Spring Boot**, and **Python-based Face Recognition** to provide a seamless and secure employee task management system with facial login and attendance tracking.
+A full-stack application that combines **React.js**, **Spring Boot**, **Python-based Face Recognition**, and **MySQL** to manage employee tasks with secure facial login and attendance tracking.
 
 ---
 
 ## 🛠️ Tech Stack
 
-### 🔹 Frontend
-- **React.js**: Modern, component-based UI
-- **HTML5 / CSS3 / JavaScript**
-- **Axios**: For API communication
-
-### 🔹 Face Recognition Module
-- **Python**
-- **OpenCV** & **face_recognition** libraries
-- Real-time face detection and embedding matching
-
-### 🔹 Backend
-- **Java** with **Spring Boot**
-- **Spring Security** for authentication
-- **REST APIs** for user, task, and attendance management
-
-### 🔹 Database
-- **MySQL**
-- Stores user data, task records, and face embeddings
+| Layer         | Technology  | Logo |
+|---------------|-------------|------|
+| Frontend      | React.js    | <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/react/react-original-wordmark.svg" alt="React" width="50"/> |
+| FaceAuth      | Python      | <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/python/python-original.svg" alt="Python" width="50"/> |
+| Backend       | Spring Boot | <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/spring/spring-original-wordmark.svg" alt="Spring Boot" width="50"/> |
+| Database      | MySQL       | <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/mysql/mysql-original-wordmark.svg" alt="MySQL" width="50"/> |
 
 ---
-
-## 🚀 Features
-
-- 👨‍💼 **Admin & Employee Roles**
-- ✅ **Face Recognition Login**
-- 📋 **Task Assignment & Management**
-- 🕒 **Real-time Attendance Tracking**
-- 🔐 **JWT Authentication**
-- 📊 **MySQL Integration for persistent storage**
-
----
-
-## 📂 Folder Structure
 
