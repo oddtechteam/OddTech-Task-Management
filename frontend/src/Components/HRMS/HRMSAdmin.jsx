@@ -1,17 +1,19 @@
-
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { Dialog, Transition } from "@headlessui/react";
+import { Clock4, X } from "lucide-react";
+import { Fragment } from "react";
 
 const HRMSAdmin = () => {
     const [activeSection, setActiveSection] = useState('dashboard');
     const [attendanceRecords, setAttendanceRecords] = useState([]);
     const [teamMembers, setTeamMembers] = useState([]);
-
     const [leaveApplications, setLeaveApplications] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+
     // Load data from localStorage on component mount
-
-
     useEffect(() => {
         const token = localStorage.getItem("token");
 
@@ -37,7 +39,6 @@ const HRMSAdmin = () => {
 
         fetchLeaveApplications();
     }, []);
-
 
     // Save data to localStorage whenever it changes
     useEffect(() => {
@@ -93,7 +94,7 @@ const HRMSAdmin = () => {
         fetch(`http://localhost:8080/api/admin/leave/${leaveId}/leaveStatus?leaveStatus=${newStatus}`, {
             method: 'PUT',
             headers: {
-                'Authorization': `Bearer ${token}`, // 🔁 use your token from login
+                'Authorization': `Bearer ${token}`,
             },
         })
             .then((res) => {
@@ -104,7 +105,6 @@ const HRMSAdmin = () => {
             })
             .then((updatedLeave) => {
                 console.log('Leave updated:', updatedLeave);
-                // Optionally update local state or re-fetch data
                 setLeaveApplications((prev) =>
                     prev.map((leave) =>
                         leave.leaveId === updatedLeave.leaveId ? updatedLeave : leave
@@ -115,12 +115,8 @@ const HRMSAdmin = () => {
                 console.error('Error updating leave:', err);
             });
 
-
-
-        // Update employee's leave balance if approved
         if (action === 'Approved') {
-            const approvedLeave = leaveApplications.find(app => app.id === id);
-            // In a real app, you would update the employee's leave balance here
+            const approvedLeave = leaveApplications.find(app => app.id === leaveId);
             alert(`Leave approved for ${approvedLeave.employee}. Their ${approvedLeave.type} leave balance will be updated.`);
         }
     };
@@ -137,26 +133,240 @@ const HRMSAdmin = () => {
         return <div className="min-h-screen bg-gray-100 flex items-center justify-center">Loading...</div>;
     }
 
+    // New Attendance Component
+    const AttendanceSection = () => {
+        const [selectedDate, setSelectedDate] = useState(new Date());
+        const [attendanceList, setAttendanceList] = useState([]);
+        const [allLogs, setAllLogs] = useState({});
+        const [logModal, setLogModal] = useState({ open: false, logs: [], name: "" });
+        const [photoModal, setPhotoModal] = useState({ open: false, url: "" });
+
+        useEffect(() => {
+            fetchAttendance();
+        }, [selectedDate]);
+
+        const fetchAttendance = async () => {
+            try {
+                const res = await fetch("http://localhost:8080/api/auth/attendance");
+                if (!res.ok) throw new Error("Failed to fetch attendance");
+
+                const allData = await res.json();
+
+                const filtered = allData.filter((entry) => {
+                    const entryDate = new Date(entry.time);
+                    return entryDate.toDateString() === selectedDate.toDateString();
+                });
+
+                const logsMap = {};
+                filtered.forEach((entry) => {
+                    if (!logsMap[entry.email]) logsMap[entry.email] = [];
+                    logsMap[entry.email].push(entry);
+                });
+
+                const uniqueAttendance = Object.values(
+                    Object.fromEntries(
+                        Object.entries(logsMap).map(([email, entries]) => [
+                            email,
+                            entries.reduce((latest, current) =>
+                                new Date(current.time) > new Date(latest.time) ? current : latest
+                            ),
+                        ])
+                    )
+                );
+
+                setAttendanceList(uniqueAttendance);
+                setAllLogs(logsMap);
+            } catch (err) {
+                console.error(err.message);
+                alert("Error fetching attendance data");
+            }
+        };
+
+        return (
+            <motion.section
+                key="attendance"
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                variants={sectionVariants}
+                className="bg-white rounded-lg shadow p-6"
+            >
+                <h2 className="text-xl font-bold mb-6 text-gray-800">Attendance Dashboard</h2>
+
+                <div className="mb-6">
+                    <label className="block text-gray-600 mb-2 font-medium">Select a Date</label>
+                    <DatePicker
+                        selected={selectedDate}
+                        onChange={(date) => setSelectedDate(date)}
+                        className="border border-gray-300 rounded-md p-2 w-full md:w-60"
+                        dateFormat="dd MMMM yyyy"
+                        showPopperArrow={false}
+                    />
+                </div>
+
+                <div className="overflow-x-auto rounded-lg border border-gray-200">
+                    <table className="w-full text-sm">
+                        <thead className="bg-blue-100 text-blue-800 font-medium">
+                            <tr>
+                                <th className="py-3 px-4 text-left">Name</th>
+                                <th className="py-3 px-4 text-left">Email</th>
+                                <th className="py-3 px-4 text-left">Status</th>
+                                <th className="py-3 px-4 text-left">Time</th>
+                                <th className="py-3 px-4 text-left">Location</th>
+                                <th className="py-3 px-4 text-left">Photo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {attendanceList.length > 0 ? (
+                                attendanceList.map((att, index) => (
+                                    <tr key={index} className="border-t hover:bg-gray-50 transition">
+                                        <td className="py-3 px-4">{att.name}</td>
+                                        <td className="py-3 px-4">{att.email}</td>
+                                        <td className="py-3 px-4">
+                                            <span
+                                                className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${att.status === "PRESENT"
+                                                    ? "bg-green-100 text-green-700"
+                                                    : "bg-red-100 text-red-700"
+                                                    }`}
+                                            >
+                                                {att.status}
+                                            </span>
+                                        </td>
+                                        <td className="py-3 px-4 text-gray-600">
+                                            {new Date(att.time).toLocaleTimeString([], {
+                                                hour: "2-digit",
+                                                minute: "2-digit",
+                                            })}
+                                            <button
+                                                onClick={() =>
+                                                    setLogModal({
+                                                        open: true,
+                                                        logs: allLogs[att.email] || [],
+                                                        name: att.name,
+                                                    })
+                                                }
+                                                className="ml-2 text-blue-600 hover:underline text-xs flex items-center"
+                                            >
+                                                <Clock4 className="h-4 w-4 mr-1" />
+                                                Logs
+                                            </button>
+                                        </td>
+                                        <td className="py-3 px-4 text-sm">
+                                            <a
+                                                href={`https://maps.google.com/?q=${att.lat},${att.lng}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-blue-600 hover:underline"
+                                            >
+                                                {att.lat.toFixed(2)}, {att.lng.toFixed(2)}
+                                            </a>
+                                        </td>
+                                        <td className="py-3 px-4">
+                                            {att.photo ? (
+                                                <img
+                                                    src={att.photo}
+                                                    alt="Face"
+                                                    className="w-16 h-16 rounded object-cover border cursor-pointer hover:scale-105 transition"
+                                                    onClick={() => setPhotoModal({ open: true, url: att.photo })}
+                                                />
+                                            ) : (
+                                                "-"
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan="6" className="text-center py-6 text-gray-500">
+                                        No attendance marked on this date.
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+
+                {/* Logs Modal */}
+                <Dialog
+                    open={logModal.open}
+                    onClose={() => setLogModal({ open: false, logs: [], name: "" })}
+                    className="relative z-50"
+                >
+                    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" aria-hidden="true" />
+                    <div className="fixed inset-0 flex items-center justify-center p-4">
+                        <Dialog.Panel className="bg-white max-w-sm w-full rounded-lg shadow-xl p-6">
+                            <div className="flex justify-between items-center mb-4">
+                                <Dialog.Title className="text-lg font-semibold">
+                                    ⏱️ Logs for {logModal.name}
+                                </Dialog.Title>
+                                <button
+                                    onClick={() => setLogModal({ open: false, logs: [], name: "" })}
+                                    className="text-gray-500 hover:text-gray-700"
+                                >
+                                    <X className="h-5 w-5" />
+                                </button>
+                            </div>
+                            <ul className="max-h-60 overflow-y-auto space-y-2 text-sm text-gray-700">
+                                {logModal.logs.map((log, idx) => (
+                                    <li key={idx}>
+                                        {new Date(log.time).toLocaleTimeString([], {
+                                            hour: "2-digit",
+                                            minute: "2-digit",
+                                            second: "2-digit",
+                                        })}
+                                    </li>
+                                ))}
+                            </ul>
+                        </Dialog.Panel>
+                    </div>
+                </Dialog>
+
+                {/* Photo Modal with Animation */}
+                <Transition appear show={photoModal.open} as={Fragment}>
+                    <Dialog
+                        as="div"
+                        className="relative z-50"
+                        onClose={() => setPhotoModal({ open: false, url: "" })}
+                    >
+                        <Transition.Child
+                            as={Fragment}
+                            enter="ease-out duration-300"
+                            enterFrom="opacity-0 backdrop-blur-none"
+                            enterTo="opacity-100 backdrop-blur-sm"
+                            leave="ease-in duration-200"
+                            leaveFrom="opacity-100 backdrop-blur-sm"
+                            leaveTo="opacity-0 backdrop-blur-none"
+                        >
+                            <div className="fixed inset-0 backdrop-blur-xs" />
+                        </Transition.Child>
+
+                        <div className="fixed inset-0 flex items-center justify-center p-4">
+                            <Transition.Child
+                                as={Fragment}
+                                enter="ease-out duration-300"
+                                enterFrom="scale-90 opacity-0"
+                                enterTo="scale-100 opacity-100"
+                                leave="ease-in duration-200"
+                                leaveFrom="scale-100 opacity-100"
+                                leaveTo="scale-90 opacity-0"
+                            >
+                                <Dialog.Panel className="bg-white p-4 rounded-lg shadow-xl max-w-lg w-full relative">
+                                    <img
+                                        src={photoModal.url}
+                                        alt="Zoomed Face"
+                                        className="rounded-lg w-full max-h-[80vh] object-contain"
+                                    />
+                                </Dialog.Panel>
+                            </Transition.Child>
+                        </div>
+                    </Dialog>
+                </Transition>
+            </motion.section>
+        );
+    };
+
     return (
         <div className="min-h-screen bg-gray-100 mt-16">
-            {/* Header
-            <header className="bg-blue-600 text-white shadow-lg">
-                <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-                    <motion.h1 className="text-2xl font-bold" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
-                        HRMS - Manager Portal
-                    </motion.h1>
-                    <div className="flex items-center space-x-4">
-                        <div className="text-right">
-                            <p className="font-semibold">Admin User</p>
-                            <p className="text-sm text-blue-200">Manager • HR Department</p>
-                        </div>
-                        <div className="w-10 h-10 bg-blue-400 rounded-full flex items-center justify-center">
-                            <span className="font-bold">A</span>
-                        </div>
-                    </div>
-                </div>
-            </header> */}
-
             <main className="container mx-auto px-4 py-6">
                 <nav className="mb-8 bg-white rounded-lg shadow p-2 overflow-x-auto">
                     <ul className="flex space-x-2 min-w-max">
@@ -430,68 +640,9 @@ const HRMSAdmin = () => {
                             </div>
                         </motion.section>
                     )}
+
                     {/* Attendance Section */}
-                    {activeSection === 'attendance' && (
-                        <motion.section key="attendance" initial="hidden" animate="visible" exit="exit" variants={sectionVariants} className="bg-white rounded-lg shadow p-6">
-                            <h2 className="text-xl font-bold mb-6 text-gray-800">Team Attendance</h2>
-
-                            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                                <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
-                                    <h3 className="font-bold text-gray-800">Team Attendance Records</h3>
-                                    <div className="flex space-x-2">
-                                        <select className="px-2 py-1 bg-gray-200 text-gray-700 rounded text-sm hover:bg-gray-300">
-                                            <option>This Month</option>
-                                            <option>Last Month</option>
-                                            <option>Last 3 Months</option>
-                                            <option>Custom Range</option>
-                                        </select>
-                                        <button className="px-3 py-1 bg-gray-200 text-gray-700 rounded text-sm hover:bg-gray-300">
-                                            Export
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div className="overflow-x-auto">
-                                    <table className="min-w-full divide-y divide-gray-200">
-                                        <thead className="bg-gray-100">
-                                            <tr>
-                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee</th>
-                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Day</th>
-                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Check In</th>
-                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Check Out</th>
-                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Working Hours</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="bg-white divide-y divide-gray-200">
-                                            {attendanceRecords.map((record) => {
-                                                const date = new Date(record.date);
-                                                const day = date.toLocaleDateString([], { weekday: 'short' });
-                                                return (
-                                                    <tr key={record.id}>
-                                                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">{record.employee}</td>
-                                                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">{record.date}</td>
-                                                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">{day}</td>
-                                                        <td className="px-4 py-3 whitespace-nowrap">
-                                                            <span className={`px-2 py-1 text-xs rounded-full ${record.status === 'Present' ? 'bg-green-100 text-green-800' : record.status === 'Late' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
-                                                                {record.status}
-                                                            </span>
-                                                        </td>
-                                                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">{record.checkIn}</td>
-                                                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">{record.checkOut}</td>
-                                                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
-                                                            {record.checkIn !== '-' && record.checkOut !== '-' ? '8.5 hours' : '-'}
-                                                        </td>
-                                                    </tr>
-                                                );
-                                            })}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </motion.section>
-                    )}
+                    {activeSection === 'attendance' && <AttendanceSection />}
 
                     {/* Team Section */}
                     {activeSection === 'team' && (
@@ -583,8 +734,6 @@ const HRMSAdmin = () => {
                     )}
                 </AnimatePresence>
             </main>
-
-
         </div>
     );
 };

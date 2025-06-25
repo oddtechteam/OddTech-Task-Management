@@ -87,7 +87,7 @@ public class AuthController {
                         for (String part : embeddingStr.split(",")) {
                             embedding.add(Float.parseFloat(part.trim()));
                         }
-                        faceEmbeddingCache.put(user.getEmail(), embedding);
+                        faceEmbeddingCache.put(user.getEmail(), user.getName(),embedding);
                         System.out.println("✅ Cached new user: " + user.getEmail());
                     } catch (Exception e) {
                         System.err.println("⚠️ Failed to parse embedding during signup cache insert.");

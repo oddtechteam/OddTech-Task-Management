@@ -57,7 +57,8 @@ public class FaceLoginController {
             }
 
             // Get stored embedding from cache
-            List<Float> storedEmbedding = embeddingCache.get(request.getEmail());
+            FaceEmbeddingCache.UserEmbedding userEmbedding = embeddingCache.get(request.getEmail());
+            List<Float> storedEmbedding = userEmbedding.getEmbedding(); // ✅ Correctly extract embedding
 
             // Compare embeddings (if needed, otherwise trust frontend comparison)
             if (request.getEmbedding() != null && !request.getEmbedding().isEmpty()) {
@@ -127,16 +128,18 @@ public class FaceLoginController {
         }
     }
 
+    // In the /cache endpoint
     @GetMapping("/cache")
     public ResponseEntity<List<Map<String, Object>>> getAllCachedEmbeddings() {
         try {
-            Map<String, List<Float>> cached = embeddingCache.getAll();
+            Map<String, FaceEmbeddingCache.UserEmbedding> cached = embeddingCache.getAll();
 
             List<Map<String, Object>> result = cached.entrySet().stream()
                     .map(entry -> {
                         Map<String, Object> map = new HashMap<>();
                         map.put("email", entry.getKey());
-                        map.put("embedding", entry.getValue());
+                        map.put("name", entry.getValue().getName());
+                        map.put("embedding", entry.getValue().getEmbedding());
                         return map;
                     }).toList();
 

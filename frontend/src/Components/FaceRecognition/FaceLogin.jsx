@@ -86,6 +86,7 @@ const FaceLogin = ({
       const cachedUser = cachedEmbeddings.find(u => u.email === loggedUser.email);
       if (!cachedUser) throw new Error("User not in cache");
       const cachedEmbedding = cachedUser.embedding;
+      const userName = cachedUser.name || loggedUser.name || "User";
 
       // Compare embeddings in frontend
       const similarityScore = (cosineSimilarity(currentEmbedding, cachedEmbedding) + 1);
@@ -106,7 +107,7 @@ const FaceLogin = ({
 
       // Send login data to backend
       const payload = {
-        name: loggedUser.name || "Dhaval",
+        name: userName,
         email: loggedUser.email,
         lat: position.coords.latitude,
         lng: position.coords.longitude,
@@ -129,7 +130,7 @@ const FaceLogin = ({
       // Success
       localStorage.setItem("username", loginData.name);
       localStorage.setItem("role", loginData.role);
-      setWelcomeUser(loginData.name);
+      setWelcomeUser(userName);
       setShowModal(true);
     } catch (err) {
       console.error("FaceLogin Error:", err);

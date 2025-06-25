@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class FaceEmbeddingCache {
 
-    private final ConcurrentHashMap<String, List<Float>> cache = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, UserEmbedding> cache = new ConcurrentHashMap<>();
     private final UserRepository userRepository;
 
     public FaceEmbeddingCache(UserRepository userRepository) {
@@ -28,7 +28,7 @@ public class FaceEmbeddingCache {
             if (user.getFaceEmbedding() != null && !user.getFaceEmbedding().isEmpty()) {
                 try {
                     List<Float> embedding = parseEmbeddingString(user.getFaceEmbedding());
-                    cache.put(user.getEmail(), embedding);
+                    cache.put(user.getEmail(), new UserEmbedding(user.getName(), embedding));
                     System.out.println("✅ Cached: " + user.getEmail());
                 } catch (Exception e) {
                     System.err.println("⚠️ Failed to parse embedding for " + user.getEmail());
@@ -52,11 +52,11 @@ public class FaceEmbeddingCache {
         return embeddingList;
     }
 
-    public void put(String email, List<Float> embedding) {
-        cache.put(email, embedding);
+    public void put(String email, String name, List<Float> embedding) {
+        cache.put(email, new UserEmbedding(name, embedding));
     }
 
-    public List<Float> get(String email) {
+    public UserEmbedding get(String email) {
         return cache.get(email);
     }
 
@@ -64,7 +64,25 @@ public class FaceEmbeddingCache {
         return cache.containsKey(email);
     }
 
-    public Map<String, List<Float>> getAll() {
+    public Map<String, UserEmbedding> getAll() {
         return cache;
+    }
+
+    public static class UserEmbedding {
+        private final String name;
+        private final List<Float> embedding;
+
+        public UserEmbedding(String name, List<Float> embedding) {
+            this.name = name;
+            this.embedding = embedding;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public List<Float> getEmbedding() {
+            return embedding;
+        }
     }
 }
