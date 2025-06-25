@@ -6,15 +6,14 @@ import { Snackbar } from '@mui/material';
 import MuiAlert from '@mui/material/Alert';
 
 const API_BASE_URL = 'http://localhost:8080/api/employee'; // Update with your API base URL
-const COMMENT_API_URL = `${API_BASE_URL}/task/comment`;
 
 const ViewTaskDetails = () => {
 
     const { id } = useParams();
     const taskId = id;
     const userString = localStorage.getItem('user');
-        const user = userString ? JSON.parse(userString) : null;
-        const userId = user?.id;
+    const user = userString ? JSON.parse(userString) : null;
+    const userId = user?.id;
 
     const { register, handleSubmit, reset, formState: { errors } } = useForm();
     const [taskData, setTaskData] = useState(null);
@@ -60,17 +59,17 @@ const ViewTaskDetails = () => {
 
     const publishComment = async (data) => {
         try {
-             const content = data.content; // ✅ Make sure this is just a plain string
-                    console.log('Publishing comment:', content);
+            const content = data.content; // ✅ Make sure this is just a plain string
+            console.log('Publishing comment:', content);
 
-                    const url = `${COMMENT_API_URL}?taskId=${taskId}&postedBy=${userId}`;
-                    console.log('Posting comment to:', url);
+            const url = ` ${API_BASE_URL}/task/comment?taskId=${taskId}&postedBy=${userId}`;
+            console.log('Posting comment to:', url);
 
-                    const response = await axios.post(url, content, {
-                        headers: { 'Content-Type': 'text/plain' }
-                    });
+            const response = await axios.post(url, content, {
+                headers: { 'Content-Type': 'text/plain' }
+            });
 
-                    console.log('Comment posted:', response.data);
+            console.log('Comment posted:', response.data);
 
 
             if (response.data.id) {
@@ -85,6 +84,8 @@ const ViewTaskDetails = () => {
             showSnackbar(error.response?.data?.message || 'Failed to publish comment', 'error');
         }
     };
+
+
 
     const showSnackbar = (message, severity) => {
         setSnackbar({ open: true, message, severity });
@@ -134,7 +135,7 @@ const ViewTaskDetails = () => {
             <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6 mt-20">
                 <div className="p-6">
                     <h2 className="text-2xl font-bold text-blue-600 mb-3">{taskData.title}</h2>
-                    <p className="text-gray-700 mb-4">{taskData.description}</p>
+                    <p className="text-gray-700 mb-4 ">{taskData.description}</p>
 
                     <div className="border-t border-gray-200 my-4"></div>
 
@@ -261,6 +262,7 @@ const ViewTaskDetails = () => {
             </Snackbar>
         </div>
     );
+
 };
 
 export default ViewTaskDetails;

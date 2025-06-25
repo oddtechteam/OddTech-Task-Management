@@ -1,4 +1,4 @@
-
+package com.complaint.backend.services;
 
 import com.complaint.backend.entities.User;
 import com.complaint.backend.entities.Attendance;
@@ -23,32 +23,24 @@ public class AttendanceScheduler {
     }
 
     // Runs daily at 11:59 PM
-    @Scheduled(cron = "0 59 23 * * ?")
-    public void markAbsentForDay() {
+
+    @Scheduled(cron = "0 0 0 * * ?") // Runs at midnight
+    public void initializeDailyAttendance() {
         LocalDate today = LocalDate.now();
         LocalDateTime startOfDay = today.atStartOfDay();
-        LocalDateTime endOfDay = today.atTime(23, 59, 59);
 
         List<User> allUsers = userRepository.findAll();
 
         for (User user : allUsers) {
-            boolean hasAttendance = attendanceRepository.existsByEmailAndTimeBetween(
-                    user.getEmail(), // Using email as unique identifier
-                    startOfDay,
-                    endOfDay
-            );
-
-            if (!hasAttendance) {
-                Attendance absentRecord = new Attendance();
-                absentRecord.setName(user.getName());
-                absentRecord.setEmail(user.getEmail());
-                absentRecord.setTime(endOfDay);
-                absentRecord.setStatus("ABSENT");
-                absentRecord.setLat(0.0); // Default values
-                absentRecord.setLng(0.0);
-                absentRecord.setPhoto("ABSENT");
-                attendanceRepository.save(absentRecord);
-            }
+            Attendance absentRecord = new Attendance();
+            absentRecord.setName(user.getName());
+            absentRecord.setEmail(user.getEmail());
+            absentRecord.setTime(startOfDay);
+            absentRecord.setStatus("ABSENT");
+            absentRecord.setLat(0.0);
+            absentRecord.setLng(0.0);
+            absentRecord.setPhoto("ABSENT");
+            attendanceRepository.save(absentRecord);
         }
     }
 }

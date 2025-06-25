@@ -32,26 +32,25 @@ public class WebSecurityConfiguration {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-   /* @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity security) throws Exception {
-    security.csrf(AbstractHttpConfigurer::disable)
-            .authorizeHttpRequests(request -> request.requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/admin/**").hasAnyAuthority(UserRole.ADMIN.name())
-                .requestMatchers("/api/employee/**").hasAnyAuthority(UserRole.EMPLOYEE.name())
-                .anyRequest().authenticated())
-            .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authenticationProvider(authenticationProvider()).addFilterBefore(
-                jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class); 
-    return security.build();
-}
- */ 
-@Bean
-public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-    http.cors().and().csrf().disable()
-        .authorizeRequests()
-        .anyRequest().permitAll(); // For debugging, permit all requests temporarily.
-    return http.build();
-}
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .cors() // Enable CORS
+                .and()
+                .csrf().disable()
+                .authorizeHttpRequests(request -> request
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/admin/**").hasAuthority(UserRole.ADMIN.name())
+                        .requestMatchers("/api/users/all").permitAll()
+                        .requestMatchers("/api/employee/**").hasAuthority(UserRole.EMPLOYEE.name())
+                        .anyRequest().authenticated()
+                )
+                .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authenticationProvider(authenticationProvider())
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
+    }
 
 
     @Bean

@@ -1,0 +1,6 @@
+flask_cors
+numpy
+flask
+deepface
+opencv-python
+mediapipe

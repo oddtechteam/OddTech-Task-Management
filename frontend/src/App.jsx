@@ -1,33 +1,45 @@
-import React from 'react';
-import { Route, Routes } from 'react-router-dom';
-import ProtectedRoute from './Components/ProtectedRoute'; // Import the wrapper
 
-// Pages
-import AdminDashboardPage from './Pages/AdminPages/AdminDashboardPage';
-import PostTaskPage from './Pages/AdminPages/PostTaskPage';
-import ShowComplaints from './Components/Admin/ShowComplaints';
-import UpdateTask from './Components/Admin/UpdateTask';
-import SignupPage from './Pages/AuthPages/SignupPage';
-import HomePage from './Pages/AuthPages/HomePage';
-import LoginPages from './Pages/AuthPages/LoginPages';
-import ViewTaskDetailsPage from './Pages/AdminPages/ViewTaskDetailsPage';
-import AboutUsPage from './Pages/AuthPages/AboutUsPage';
-import ContactUsPage from './Pages/AuthPages/ContactUsPage';
-import ViewEmployeeTaskDetailsPage from './Pages/EmployeePages/ViewEmployeeTaskDetailsPage';
-import EmployeeDashboardPage from './Pages/EmployeePages/EmployeeDashboardPage';
-import Footer from './Pages/FooterPages/FooterPage'
-// import ChatBot from './Components/Chatbot/ChatBot'
+import './App.css'
+import React from 'react'
+import { Route, Routes } from 'react-router-dom'
+import AdminDashboardPage from './Pages/AdminPages/AdminDashboardPage'
+import PostTaskPage from './Pages/AdminPages/PostTaskPage'
 
-
+import SignupPage from './Pages/AuthPages/SignupPage'
+import HomePage from './Pages/AuthPages/HomePage'
+import LoginPages from './Pages/AuthPages/LoginPages'
+import ViewTaskDetailsPage from './Pages/AdminPages/ViewTaskDetailsPage'
+import AboutUsPage from './Pages/AuthPages/AboutUsPage'
+import ContactUsPage from './Pages/AuthPages/ContactUsPage'
+import ViewEmployeeTaskDetailsPage from './Pages/EmployeePages/ViewEmployeeTaskDetailsPage'
+import EmployeeDashboardPage from './Pages/EmployeePages/EmployeeDashboardPage'
+import ProtectedRoute from './Components/ProtectedRout'
+import ShowComplaintsPage from './Pages/AdminPages/ShowComplaintsPage'
+import UpdateTaskPage from './Pages/AdminPages/UpdateTaskPage'
+import AttendenceCapturePage from './Pages/FaceRecognitionPages/AttendenceCapturePage'
+import FaceLoginPage from './Pages/FaceRecognitionPages/FaceLoginPage'
+import AttendancePages from './Pages/AdminPages/AttendancePages'
+import HRMSAdminPage from './Pages/HRMSPages/HRMSAdminPage'
+import HRMSEmployeePage from './Pages/HRMSPages/HRMSEmployeePage'
+import OAuthRedirectPage from './Pages/AuthPages/OAuthRedirectPage'
 function App() {
-  return (
-    <>
+ 
+return (
+      <>
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/loginpage" element={<LoginPages />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/aboutus" element={<AboutUsPage />} />
         <Route path="/contactus" element={<ContactUsPage />} />
+        <Route path="/home" element={<HomePage/>} />
+        <Route path="/facelogin" element={<FaceLoginPage />} />   
+        <Route path="/oauth2/redirect" element={<OAuthRedirectPage />} />
+        <Route path="/attendance" element={<AttendenceCapturePage />} /> 
+
+
+      
+
 
 
         {/* Admin Routes */}
@@ -41,18 +53,30 @@ function App() {
         />
         <Route
           path="/showcomplaints"
-          element={<ProtectedRoute element={ShowComplaints} allowedRoles={['ADMIN']} />}
+          element={<ProtectedRoute element={ShowComplaintsPage} allowedRoles={['ADMIN']} />}
         />
         <Route
           path="/updatetask/:id"
-          element={<ProtectedRoute element={UpdateTask} allowedRoles={['ADMIN']} />}
+          element={<ProtectedRoute element={UpdateTaskPage} allowedRoles={['ADMIN']} />}
         />
         <Route
           path="/viewtaskdetails/:id"
           element={<ProtectedRoute element={ViewTaskDetailsPage} allowedRoles={['ADMIN']} />}
         />
 
+        {/* <Route
+          path="/attendance"
+          element={<ProtectedRoute element={AttendancePages} allowedRoles={['ADMIN']} />}
+        /> */}
+        <Route
+          path="/hrmsadmin"
+          element={<ProtectedRoute element={HRMSAdminPage} allowedRoles={['ADMIN']} />}
+        /> 
+
+
+
         {/* Employee Routes */}
+
         <Route
           path="/employeedashboard"
           element={<ProtectedRoute element={EmployeeDashboardPage} allowedRoles={['EMPLOYEE']} />}
@@ -61,11 +85,41 @@ function App() {
           path="/viewemployeetaskdetails/:id"
           element={<ProtectedRoute element={ViewEmployeeTaskDetailsPage} allowedRoles={['EMPLOYEE']} />}
         />
+        <Route
+        path="/face"
+        element={<ProtectedRoute element={AttendenceCapturePage} allowedRoles={['EMPLOYEE']}/>}
+        />
+
+        <Route
+        path="/hrmsemployee"
+        element={<ProtectedRoute element={HRMSEmployeePage} allowedRoles={['EMPLOYEE']}/>}
+        />
       </Routes>
-{/*       <ChatBot/> */}
-      <Footer/>
     </>
-  );
+  )
 }
 
-export default App;
+export default App
+
+
+
+
+
+// import './App.css'
+// import LoginPage from './Pages/LoginPage'
+// import SignupPage from './Pages/SignupPage'
+
+// function App() {
+ 
+// return (
+//     <>
+    
+//     <LoginPage/>
+//     <SignupPage/>
+   
+//     </>
+//   )
+// }{/*
+
+// export default App
+
