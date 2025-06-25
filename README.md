@@ -1,6 +1,3 @@
-# Task Management System
-
-A full-stack application that combines **React.js**, **Spring Boot**, **Python-based Face Recognition**, and **MySQL** to manage employee tasks with secure facial login and attendance tracking.
 
 ---
 
